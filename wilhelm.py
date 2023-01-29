@@ -20,7 +20,7 @@ GAME_URL = f"https://www.playdiplomacy.com/game_play.php?game_id={GAME_ID}"
 
 REFRESH_INTERVAL = 3600  # 3600 seconds is 60 minutes
 POWERS = [2**i for i in range(8, 0, -1)]
-REGEX = regex = re.compile("Time Left:[^<]*</span>")
+REGEX = re.compile("Time Left:[^<]*</span>")
 
 GREETING = """
 Welcome! My name is Wilhelm Tell. Use the command /tell to ask for the time until the next game deadline, or enable notifications whenever the number of hours left is less than a power of 2 with /enable.
@@ -78,6 +78,13 @@ def start(update, context):
 def tell(update, context):
 
     LOGGER.info(f"Tell request from chat id {update.effective_message.chat_id}")
+
+    if " ".join(context.args).strip("? ").lower() == "me why":
+        context.bot.send_message(
+            chat_id=update.effective_message.chat_id,
+            text="ain't nothin but a backstab",
+            parse_mode=ParseMode.HTML,
+        )
 
     try:
         total_hours_left, time_left_str = get_time_left()
