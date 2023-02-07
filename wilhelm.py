@@ -107,14 +107,19 @@ def fetch(update, context):
 
     try:
         get_img()
+
+        with open("temp.png", "rb") as fh:
+            context.bot.send_photo(chat_id=update.effective_message.chat_id, photo=fh)
+
+        LOGGER.info(
+            f"Replied successfully to fetch request from chat id {update.effective_message.chat_id}"
+        )
+
     except Exception as e:
         LOGGER.info(
             f"Failed to reply successfully to fetch request from chat id {update.effective_message.chat_id} because of {e}"
         )
         reply = "I sadly couldn't determine the current time left."
-
-    with open("temp.png", "rb") as fh:
-        context.bot.send_photo(chat_id=update.effective_message.chat_id, photo=fh)
 
 
 def enable(update, context):
