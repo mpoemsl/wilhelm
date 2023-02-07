@@ -12,11 +12,12 @@ LOGGER = structlog.get_logger()
 GAME_ID = os.getenv("PD_GID")
 USERNAME = os.getenv("PD_USERNAME")
 PASSWORD = os.getenv("PD_PASSWORD")
-ADMIN_ID = int(os.getenv("TG_ID"))
+ADMIN_ID = os.getenv("TG_ID")
 TOKEN = os.getenv("TG_TOKEN")
 
 BASE_URL = "https://www.playdiplomacy.com/"
 GAME_URL = f"https://www.playdiplomacy.com/game_play.php?game_id={GAME_ID}"
+HISTORY_URL = f"https://www.playdiplomacy.com/game_history.php?game_id={GAME_ID}"
 
 REFRESH_INTERVAL = 3600  # 3600 seconds is 60 minutes
 POWERS = [2**i for i in range(8, 0, -1)]
@@ -48,18 +49,19 @@ def main():
 
     updater.dispatcher.add_handler(CommandHandler("start", start))
     updater.dispatcher.add_handler(CommandHandler("tell", tell))
+    updater.dispatcher.add_handler(CommandHandler("fetch", fetch))
     updater.dispatcher.add_handler(CommandHandler("enable", enable))
     updater.dispatcher.add_handler(CommandHandler("disable", disable))
     updater.dispatcher.add_handler(CommandHandler("megaphone", megaphone))
 
-    print("Starting polling ...")
+    LOGGER.info("Starting polling ...")
     updater.start_polling(poll_interval=1.0, timeout=30.0)
     updater.idle()
 
 
 def megaphone(update, context):
 
-    if update.effective_message.chat_id == ADMIN_ID:
+    if update.effective_message.chat_id == int(ADMIN_ID):
         LOGGER.info(f"Received megaphone request from chat id {update.effective_message.chat_id}")
         target_id = context.args[0]
         msg = " ".join(context.args[1:])
@@ -101,6 +103,22 @@ def tell(update, context):
     context.bot.send_message(
         chat_id=update.effective_message.chat_id, text=reply, parse_mode=ParseMode.HTML
     )
+
+
+def fetch(update, context):
+
+    LOGGER.info(f"Fetch request from chat id {update.effective_message.chat_id}")
+
+    try:
+        get_img()
+    except Exception as e:
+        LOGGER.info(
+            f"Failed to reply successfully to fetch request from chat id {update.effective_message.chat_id} because of {e}"
+        )
+        reply = "I sadly couldn't determine the current time left."
+
+    with open("temp.png", "rb") as fh:
+        context.bot.send_photo(chat_id=update.effective_message.chat_id, photo=fh)
 
 
 def enable(update, context):
@@ -168,14 +186,7 @@ def tell_check(context):
 
 def get_time_left():
 
-    browser = mch.StatefulBrowser()
-    browser.open(BASE_URL)
-    browser.select_form('form[action="login.php"]')
-
-    browser["username"] = USERNAME
-    browser["password"] = PASSWORD
-
-    browser.submit_selected()
+    browser = login()
     browser.open(GAME_URL)
 
     match = REGEX.search(str(browser.page))
@@ -191,6 +202,33 @@ def get_time_left():
     total_hours_left = days * 24 + hours
 
     return total_hours_left, time_left_str
+
+
+def get_img():
+
+    browser = login()
+    browser.open(HISTORY_URL)
+
+    current_phase_link = browser.links()[-2]
+    browser.follow_link(link=current_phase_link)
+
+    img_link = browser.links()[2]
+    browser.download_link(link=img_link, file="temp.png")
+
+
+def login():
+
+    browser = mch.StatefulBrowser()
+
+    browser.open(BASE_URL)
+    browser.select_form('form[action="login.php"]')
+
+    browser["username"] = USERNAME
+    browser["password"] = PASSWORD
+
+    browser.submit_selected()
+
+    return browser
 
 
 if __name__ == "__main__":
