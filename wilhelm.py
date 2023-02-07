@@ -38,13 +38,12 @@ I only refresh once an hour, so keep in mind there might be a delay. For now, th
 """
 
 REMIND_TEMPLATE = """
-<i>SCHEDULED NOTIFICATION:</i> 
+<i>SCHEDULED NOTIFICATION:</i>
 There are less than <b>{} hours</b> left until the next game deadline.
 """
 
 
 def main():
-
     updater = Updater(token=TOKEN, use_context=True)
 
     updater.dispatcher.add_handler(CommandHandler("start", start))
@@ -60,7 +59,6 @@ def main():
 
 
 def megaphone(update, context):
-
     if update.effective_message.chat_id == int(ADMIN_ID):
         LOGGER.info(f"Received megaphone request from chat id {update.effective_message.chat_id}")
         target_id = context.args[0]
@@ -69,7 +67,6 @@ def megaphone(update, context):
 
 
 def start(update, context):
-
     LOGGER.info(f"Start request from chat id {update.effective_message.chat_id}")
 
     context.bot.send_message(
@@ -78,7 +75,6 @@ def start(update, context):
 
 
 def tell(update, context):
-
     LOGGER.info(f"Tell request from chat id {update.effective_message.chat_id}")
 
     if " ".join(context.args).strip("? ").lower() == "me why":
@@ -122,7 +118,6 @@ def fetch(update, context):
 
 
 def enable(update, context):
-
     LOGGER.info(f"Enable request from chat id {update.effective_message.chat_id}")
 
     try:
@@ -153,7 +148,6 @@ def enable(update, context):
 
 
 def disable(update, context):
-
     LOGGER.info(f"Disable request from chat id {update.effective_message.chat_id}")
 
     for job in context.job_queue.get_jobs_by_name(str(update.effective_message.chat_id)):
@@ -166,7 +160,6 @@ def disable(update, context):
 
 
 def tell_check(context):
-
     total_hours_left, time_left_str = get_time_left()
     chat_id = context.job.context
 
@@ -196,8 +189,16 @@ def get_time_left():
 
     time_left_str = match.group()[11:-7]
 
-    days_str, hours_str, mins_str = time_left_str.split(":")
-    days, hours, mins = int(days_str[:-1]), int(hours_str[:-1]), int(mins_str[:-1])
+    intify = lambda s: int(s[:-1])
+
+    if time_left_str.count(":") == 2:
+        days, hours, mins = map(intify, time_left_str.split(":"))
+    elif time_left_str.count(":") == 1:
+        days = 0
+        hours, mins = map(intify, time_left_str.split(":"))
+    else:
+        days, hours = 0, 0
+        mins = intify(time_left_str)
 
     total_hours_left = days * 24 + hours
 
