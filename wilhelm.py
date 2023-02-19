@@ -43,11 +43,11 @@ def main():
     updater = Updater(token=TOKEN, use_context=True)
 
     updater.dispatcher.add_handler(CommandHandler("start", start))
-    updater.dispatcher.add_handler(CommandHandler("gif", gif))
     updater.dispatcher.add_handler(CommandHandler("tell", tell))
     updater.dispatcher.add_handler(CommandHandler("fetch", fetch))
     updater.dispatcher.add_handler(CommandHandler("enable", enable))
     updater.dispatcher.add_handler(CommandHandler("disable", disable))
+    updater.dispatcher.add_handler(CommandHandler("animate", animate))
     updater.dispatcher.add_handler(CommandHandler("megaphone", megaphone))
 
     LOGGER.info("Starting polling ...")
@@ -128,7 +128,7 @@ def animate(update, context):
         gif_fp = make_animation()
 
         with open(gif_fp, "rb") as fh:
-            context.bot.send_document(chat_id=update.effective_message.chat_id, document=fh)
+            context.bot.send_video(chat_id=update.effective_message.chat_id, video=fh)
 
         LOGGER.info(
             f"Replied successfully to gif request from chat id {update.effective_message.chat_id}"
