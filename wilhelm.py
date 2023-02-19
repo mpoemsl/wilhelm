@@ -125,9 +125,9 @@ def animate(update, context):
 
     try:
         get_imgs()
-        gif_fp = make_animation()
+        ani_fp = make_animation()
 
-        with open(gif_fp, "rb") as fh:
+        with open(ani_fp, "rb") as fh:
             context.bot.send_video(chat_id=update.effective_message.chat_id, video=fh)
 
         LOGGER.info(
@@ -263,6 +263,8 @@ def make_animation():
         ani = animation.ArtistAnimation(fig, ims, blit=True, repeat=False)
         writer = animation.FFMpegWriter(fps=1)
         ani.save(ani_fp, writer=writer, dpi=300)
+
+    return ani_fp
 
 
 def login():
