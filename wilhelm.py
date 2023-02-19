@@ -106,9 +106,10 @@ def fetch(update, context):
     LOGGER.info(f"Fetch request from chat id {update.effective_message.chat_id}")
 
     try:
-        get_img()
+        get_imgs()
+        latest_fp = "imgs/" + max(os.listdir("imgs/"))
 
-        with open("temp.png", "rb") as fh:
+        with open(latest_fp, "rb") as fh:
             context.bot.send_photo(chat_id=update.effective_message.chat_id, photo=fh)
 
         LOGGER.info(
@@ -210,16 +211,24 @@ def get_time_left():
     return total_hours_left, time_left_str
 
 
-def get_img():
+def get_imgs():
 
     browser = login()
     browser.open(HISTORY_URL)
 
-    current_phase_link = browser.links()[-2]
-    browser.follow_link(link=current_phase_link)
+    os.makedirs("imgs/", exist_ok=True)
 
-    img_link = browser.links()[2]
-    browser.download_link(link=img_link, file="temp.png")
+    for ix, link in enumerate(browser.links()[:-1]):
+
+        fp = f"imgs/{ix:02}.png"
+
+        if not os.path.exists(fp):
+            browser.follow_link(link=link)
+
+            img_links = [link for link in browser.links() if link.attrs.get("target") == "blank"]
+            assert len(img_links) == 1, f"More than one image link found on page {browser.url}!"
+
+            browser.download_link(link=img_links[0], file=fp)
 
 
 def login():
