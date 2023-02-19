@@ -31,7 +31,7 @@ Welcome! My name is Wilhelm Tell. Use the command /tell to ask for the time unti
 TELL_TEMPLATE = "There are about <b>{} hours</b> left until the next game deadline. To be more precise, the exact time left is {}."
 
 ENABLE_TEMPLATE = """
-Notifications enabled. I will notify you once the number of hours left is less than one of the following:
+Notifications enabled. I will notify you once the number of hours left is roughly equal to one of the following:
 
 {}
 
