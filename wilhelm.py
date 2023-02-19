@@ -128,7 +128,7 @@ def gif(update, context):
         gif_fp = make_gif()
 
         with open(gif_fp, "rb") as fh:
-            context.bot.send_photo(chat_id=update.effective_message.chat_id, photo=fh)
+            context.bot.send_document(chat_id=update.effective_message.chat_id, document=fh)
 
         LOGGER.info(
             f"Replied successfully to gif request from chat id {update.effective_message.chat_id}"
