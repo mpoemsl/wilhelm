@@ -37,11 +37,6 @@ Notifications enabled. I will notify you once the number of hours left is less t
 I only refresh once an hour, so keep in mind there might be a delay. For now, there are about <b>{} hours</b> left until the next game deadline.
 """
 
-REMIND_TEMPLATE = """
-<i>SCHEDULED NOTIFICATION:</i>
-There are less than <b>{} hours</b> left until the next game deadline.
-"""
-
 
 def main():
     updater = Updater(token=TOKEN, use_context=True)
@@ -172,7 +167,9 @@ def tell_check(context):
     LOGGER.info(f"Tell check for chat id {chat_id}")
 
     if total_hours_left in POWERS:
-        reply = REMIND_TEMPLATE.format(total_hours_left)
+        reply = "<i>SCHEDULED NOTIFICATION:</i>\n" + TELL_TEMPLATE.format(
+            total_hours_left, time_left_str
+        )
         context.bot.send_message(chat_id=chat_id, text=reply, parse_mode=ParseMode.HTML)
 
     context.job_queue.run_once(tell_check, REFRESH_INTERVAL, context=chat_id, name=str(chat_id))
