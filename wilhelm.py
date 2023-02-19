@@ -121,7 +121,7 @@ def fetch(update, context):
 
 def animate(update, context):
 
-    LOGGER.info(f"Gif request from chat id {update.effective_message.chat_id}")
+    LOGGER.info(f"Animate request from chat id {update.effective_message.chat_id}")
 
     try:
         get_imgs()
@@ -131,12 +131,12 @@ def animate(update, context):
             context.bot.send_video(chat_id=update.effective_message.chat_id, video=fh)
 
         LOGGER.info(
-            f"Replied successfully to gif request from chat id {update.effective_message.chat_id}"
+            f"Replied successfully to animate request from chat id {update.effective_message.chat_id}"
         )
 
     except Exception as e:
         LOGGER.info(
-            f"Failed to reply successfully to gif request from chat id {update.effective_message.chat_id} because of {e}"
+            f"Failed to reply successfully to animate request from chat id {update.effective_message.chat_id} because of {e}"
         )
 
 
