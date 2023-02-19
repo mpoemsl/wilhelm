@@ -119,13 +119,13 @@ def fetch(update, context):
         )
 
 
-def gif(update, context):
+def animate(update, context):
 
     LOGGER.info(f"Gif request from chat id {update.effective_message.chat_id}")
 
     try:
         get_imgs()
-        gif_fp = make_gif()
+        gif_fp = make_animation()
 
         with open(gif_fp, "rb") as fh:
             context.bot.send_document(chat_id=update.effective_message.chat_id, document=fh)
@@ -245,23 +245,24 @@ def get_imgs():
             browser.download_link(link=img_links[0], file=fp)
 
 
-def make_gif():
+def make_animation():
 
     png_fps = ["imgs/" + fn for fn in os.listdir("imgs/") if fn.endswith("png")]
 
-    gif_fp = max(png_fps).replace("png", "gif")
+    ani_fp = max(png_fps).replace("png", "mp4")
 
-    if not os.path.exists(gif_fp):
+    if not os.path.exists(ani_fp):
 
         fig, ax = plt.subplots()
+        ax.set_axis_off()
+        fig.add_axes(ax)
 
         imgs = [plt.imread(fp) for fp in png_fps]
-        ims = [[ax.imshow(img, animated=True)] for img in imgs]
+        ims = [[ax.imshow(img, animated=True, aspect="equal")] for img in imgs]
 
-        ani = animation.ArtistAnimation(fig, ims, interval=2000, blit=True, repeat=False)
-        ani.save(gif_fp, writer="imagemagick", dpi=300)
-
-    return gif_fp
+        ani = animation.ArtistAnimation(fig, ims, blit=True, repeat=False)
+        writer = animation.FFMpegWriter(fps=1)
+        ani.save(ani_fp, writer=writer, dpi=300)
 
 
 def login():
