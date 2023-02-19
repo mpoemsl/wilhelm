@@ -175,12 +175,7 @@ def tell_check(context):
         reply = REMIND_TEMPLATE.format(total_hours_left)
         context.bot.send_message(chat_id=chat_id, text=reply, parse_mode=ParseMode.HTML)
 
-    if total_hours_left > 1:
-        context.job_queue.run_once(tell_check, REFRESH_INTERVAL, context=chat_id, name=str(chat_id))
-    else:
-        context.bot.send_message(
-            chat_id=chat_id, text="There will be no more notifications from me for now."
-        )
+    context.job_queue.run_once(tell_check, REFRESH_INTERVAL, context=chat_id, name=str(chat_id))
 
 
 def get_time_left():
