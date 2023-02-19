@@ -257,7 +257,7 @@ def make_animation():
         ax.set_axis_off()
         fig.add_axes(ax)
 
-        imgs = [plt.imread(fp) for fp in png_fps]
+        imgs = [plt.imread(fp) for fp in sorted(png_fps)]
         ims = [[ax.imshow(img, animated=True, aspect="equal")] for img in imgs]
 
         ani = animation.ArtistAnimation(fig, ims, blit=True, repeat=False)
