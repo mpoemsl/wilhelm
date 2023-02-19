@@ -1,7 +1,8 @@
 import os
 import re
-import time
 
+import matplotlib.animation as animation
+import matplotlib.pyplot as plt
 import mechanicalsoup as mch
 import structlog
 from telegram import ParseMode
@@ -42,6 +43,7 @@ def main():
     updater = Updater(token=TOKEN, use_context=True)
 
     updater.dispatcher.add_handler(CommandHandler("start", start))
+    updater.dispatcher.add_handler(CommandHandler("gif", gif))
     updater.dispatcher.add_handler(CommandHandler("tell", tell))
     updater.dispatcher.add_handler(CommandHandler("fetch", fetch))
     updater.dispatcher.add_handler(CommandHandler("enable", enable))
@@ -115,7 +117,27 @@ def fetch(update, context):
         LOGGER.info(
             f"Failed to reply successfully to fetch request from chat id {update.effective_message.chat_id} because of {e}"
         )
-        reply = "I sadly couldn't determine the current time left."
+
+
+def gif(update, context):
+
+    LOGGER.info(f"Gif request from chat id {update.effective_message.chat_id}")
+
+    try:
+        get_imgs()
+        gif_fp = make_gif()
+
+        with open(gif_fp, "rb") as fh:
+            context.bot.send_photo(chat_id=update.effective_message.chat_id, photo=fh)
+
+        LOGGER.info(
+            f"Replied successfully to gif request from chat id {update.effective_message.chat_id}"
+        )
+
+    except Exception as e:
+        LOGGER.info(
+            f"Failed to reply successfully to gif request from chat id {update.effective_message.chat_id} because of {e}"
+        )
 
 
 def enable(update, context):
@@ -221,6 +243,25 @@ def get_imgs():
             assert len(img_links) == 1, f"More than one image link found on page {browser.url}!"
 
             browser.download_link(link=img_links[0], file=fp)
+
+
+def make_gif():
+
+    png_fps = ["imgs/" + fn for fn in os.listdir("imgs/") if fn.endswith("png")]
+
+    gif_fp = max(png_fps).replace("png", "gif")
+
+    if not os.path.exists(gif_fp):
+
+        fig, ax = plt.subplots()
+
+        imgs = [plt.imread(fp) for fp in png_fps]
+        ims = [[ax.imshow(img, animated=True)] for img in imgs]
+
+        ani = animation.ArtistAnimation(fig, ims, interval=2000, blit=True, repeat=False)
+        ani.save(gif_fp, writer="imagemagick", dpi=300)
+
+    return gif_fp
 
 
 def login():

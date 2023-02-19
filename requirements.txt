@@ -2,4 +2,5 @@ python-telegram-bot==13.8.1
 six==1.16.0
 Werkzeug==2.0.2
 structlog==22.3.0
+matplotlib==3.7.0
 mechanicalsoup==1.2.0
