@@ -4,6 +4,7 @@ import re
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import mechanicalsoup as mch
+import numpy as np
 import structlog
 from telegram import ParseMode
 from telegram.ext import CommandHandler, Updater
@@ -245,7 +246,7 @@ def get_imgs():
             browser.download_link(link=img_links[0], file=fp)
 
 
-def make_animation():
+def make_animation(n_interpolations=4):
 
     png_fps = ["imgs/" + fn for fn in os.listdir("imgs/") if fn.endswith("png")]
 
@@ -258,10 +259,15 @@ def make_animation():
         fig.add_axes(ax)
 
         imgs = [plt.imread(fp) for fp in sorted(png_fps)]
-        ims = [[ax.imshow(img, animated=True, aspect="equal")] for img in imgs]
+
+        interpolated_imgs = []
+        for ix, img in enumerate(imgs[:-1]):
+            interpolated_imgs.extend(np.linspace(img, imgs[ix + 1], n_interpolations + 2).tolist())
+
+        ims = [[ax.imshow(img, animated=True, aspect="equal")] for img in interpolated_imgs]
 
         ani = animation.ArtistAnimation(fig, ims, blit=True, repeat=False)
-        writer = animation.FFMpegWriter(fps=1)
+        writer = animation.FFMpegWriter(fps=n_interpolations + 1, extra_args=['-vcodec', 'libx264'])
         ani.save(ani_fp, writer=writer, dpi=300)
 
     return ani_fp
