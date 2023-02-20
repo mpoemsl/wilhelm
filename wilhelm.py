@@ -246,7 +246,7 @@ def get_imgs():
             browser.download_link(link=img_links[0], file=fp)
 
 
-def make_animation(n_interpolations=0):
+def make_animation(n_interpolations=1):
 
     png_fps = ["imgs/" + fn for fn in os.listdir("imgs/") if fn.endswith("png")]
 
@@ -262,13 +262,13 @@ def make_animation(n_interpolations=0):
 
         interpolated_imgs = []
         for ix, img in enumerate(imgs[:-1]):
-            interpolated_imgs.extend(np.linspace(img, imgs[ix + 1], n_interpolations + 2).tolist())
+            interpolated_imgs.extend([arr for arr in np.linspace(img, imgs[ix + 1], n_interpolations + 2)])
 
         ims = [[ax.imshow(img, animated=True, aspect="equal")] for img in interpolated_imgs]
 
         ani = animation.ArtistAnimation(fig, ims, blit=True, repeat=False)
         writer = animation.FFMpegWriter(fps=n_interpolations + 1, extra_args=['-vcodec', 'libx264'])
-        ani.save(ani_fp, writer=writer, dpi=300)
+        ani.save(ani_fp, writer=writer, dpi=200)
 
     return ani_fp
 
