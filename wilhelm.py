@@ -246,7 +246,7 @@ def get_imgs():
             browser.download_link(link=img_links[0], file=fp)
 
 
-def make_animation(n_interpolations=4):
+def make_animation(n_interpolations=0):
 
     png_fps = ["imgs/" + fn for fn in os.listdir("imgs/") if fn.endswith("png")]
 
