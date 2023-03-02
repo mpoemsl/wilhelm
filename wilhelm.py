@@ -22,6 +22,7 @@ GAME_URL = f"https://www.playdiplomacy.com/game_play.php?game_id={GAME_ID}"
 HISTORY_URL = f"https://www.playdiplomacy.com/game_history.php?game_id={GAME_ID}"
 
 REFRESH_INTERVAL = 3600  # 3600 seconds is 60 minutes
+N_ANI_FRAMES = 12
 POWERS = [2**i for i in range(8, 0, -1)]
 REGEX = re.compile("Time Left:[^<]*</span>")
 
@@ -100,7 +101,6 @@ def tell(update, context):
 
 
 def fetch(update, context):
-
     LOGGER.info(f"Fetch request from chat id {update.effective_message.chat_id}")
 
     try:
@@ -121,12 +121,16 @@ def fetch(update, context):
 
 
 def animate(update, context):
-
     LOGGER.info(f"Animate request from chat id {update.effective_message.chat_id}")
 
     try:
+        n_moves = int(context.args[0])
+    except:
+        n_moves = 3
+
+    try:
         get_imgs()
-        ani_fp = make_animation()
+        ani_fp = make_animation(n_moves)
 
         with open(ani_fp, "rb") as fh:
             context.bot.send_video(chat_id=update.effective_message.chat_id, video=fh)
@@ -199,7 +203,6 @@ def tell_check(context):
 
 
 def get_time_left():
-
     browser = login()
     browser.open(GAME_URL)
 
@@ -227,14 +230,12 @@ def get_time_left():
 
 
 def get_imgs():
-
     browser = login()
     browser.open(HISTORY_URL)
 
     os.makedirs("imgs/", exist_ok=True)
 
     for ix, link in enumerate(browser.links()[:-1]):
-
         fp = f"imgs/{ix:02}.png"
 
         if not os.path.exists(fp):
@@ -246,14 +247,15 @@ def get_imgs():
             browser.download_link(link=img_links[0], file=fp)
 
 
-def make_animation(n_interpolations=1):
+def make_animation(n_moves):
+    png_fps = ["imgs/" + fn for fn in sorted(os.listdir("imgs/")) if fn.endswith("png")]
 
-    png_fps = ["imgs/" + fn for fn in os.listdir("imgs/") if fn.endswith("png")]
+    png_fps = png_fps[-n_moves:]
+    n_interpolations = (N_ANI_FRAMES // n_moves) - 1
 
     ani_fp = max(png_fps).replace("png", "mp4")
 
     if not os.path.exists(ani_fp):
-
         fig, ax = plt.subplots()
         ax.set_axis_off()
         fig.add_axes(ax)
@@ -262,19 +264,20 @@ def make_animation(n_interpolations=1):
 
         interpolated_imgs = []
         for ix, img in enumerate(imgs[:-1]):
-            interpolated_imgs.extend([arr for arr in np.linspace(img, imgs[ix + 1], n_interpolations + 2)])
+            interpolated_imgs.extend(
+                [arr for arr in np.linspace(img, imgs[ix + 1], n_interpolations + 2)]
+            )
 
         ims = [[ax.imshow(img, animated=True, aspect="equal")] for img in interpolated_imgs]
 
         ani = animation.ArtistAnimation(fig, ims, blit=True, repeat=False)
-        writer = animation.FFMpegWriter(fps=n_interpolations + 1, extra_args=['-vcodec', 'libx264'])
+        writer = animation.FFMpegWriter(fps=n_interpolations + 1, extra_args=["-vcodec", "libx264"])
         ani.save(ani_fp, writer=writer, dpi=200)
 
     return ani_fp
 
 
 def login():
-
     browser = mch.StatefulBrowser()
 
     browser.open(BASE_URL)
